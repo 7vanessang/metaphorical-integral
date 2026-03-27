@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>From Caterpillar to Butterfly — MAT133 Project 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.0/math.min.js"></script>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --deep-indigo: #220d51;
+    --teal: #139f88;
+    --mint: #45c295;
+    --violet: #4e4b8f;
+    --color-border: rgba(68, 75, 143, 0.12);
+    --color-text-primary: #1a1233;
+    --color-text-muted: #7b7fa8;
+    --stage-inactive: #d5d0e8;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background-image: url('white-flowers-and-green-grass-.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-color: #2d4a1e;
+    color: var(--color-text-primary);
+    line-height: 1.65;
+    min-height: 100vh;
+  }
+
+  #stage-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 20, 10, 0.32);
+    pointer-events: none;
+    z-index: 0;
+    transition: background 1.8s ease;
+  }
+
+  .header {
+    position: relative;
+    z-index: 2;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 2.5rem 2rem;
+    background: rgba(250, 245, 238, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+  }
+
+  .header .course-line {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 3rem;
+    line-height: 1.15;
+  }
+
+  .header .one-liner {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-top: 0.4rem;
+  }
+
+  .main {
+    position: relative;
+    z-index: 2;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 6rem;
+  }
+
+  .interactive-panel {
+    background: var(--panel-bg, rgba(250, 245, 238, 0.78));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(34, 13, 81, 0.10);
+    padding: 2.5rem;
+    margin-bottom: 2.5rem;
+    transition: background 1.8s ease;
+  }
+
+  .panel-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    font-size: 1.5rem;
+    color: var(--teal);
+    margin-bottom: 1.5rem;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 1rem;
+    align-items: end;
+    margin-bottom: 2rem;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .input-group label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .input-group input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    padding: 0.6rem 0.9rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.85);
+    color: var(--color-text-primary);
+    transition: border-color 0.2s;
+    outline: none;
+    width: 100%;
+  }
+
+  .input-group input:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(19,159,136,0.15);
+  }
+
+  .input-group input.fn-input {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    font-style: italic;
+  }
+
+  .bounds-row {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .bounds-row .input-group { flex: 1; }
+  .bounds-row .input-group input { width: 100%; min-width: 60px; }
+
+  .btn-compute {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.65rem 1.8rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--teal);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+    align-self: end;
+  }
+
+  .btn-compute:hover { background: #0d7a69; }
+  .btn-compute:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+  .visual-area {
+    display: grid;
+    grid-template-columns: 65% 35%;
+    gap: 1.5rem;
+    align-items: start;
+    margin-bottom: 1.5rem;
+  }
+
+  .graph-container {
+    position: relative;
+    background: #faf5ee;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+  }
+
+  .graph-container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(201, 168, 76, 0.1);
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.8s ease;
+    border-radius: inherit;
+  }
+
+  .graph-container[data-stage="1"]::after { opacity: 0.5; }
+  .graph-container[data-stage="2"]::after { opacity: 0.15; }
+  .graph-container[data-stage="3"]::after { opacity: 0; }
+
+  .graph-container canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .butterfly-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .butterfly-display {
+    width: 100%;
+    aspect-ratio: 1;
+    position: relative;
+    background: #faf5ee;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .butterfly-display img {
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+    position: absolute;
+    opacity: 0;
+    filter: saturate(0.2) opacity(0.5);
+    transition: opacity 0.5s, filter 0.8s ease;
+  }
+
+  .butterfly-display img.active {
+    opacity: 1;
+  }
+
+
+  .stage-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--violet);
+    text-align: center;
+  }
+
+  .timeline {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0 0.25rem;
+  }
+
+  .timeline-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    flex: 0 0 auto;
+  }
+
+  .stage-icon {
+    width: 28px;
+    height: 28px;
+    color: var(--stage-inactive);
+    transition: color 0.3s;
+    display: block;
+    margin: 0 auto 0.3rem;
+  }
+
+  .timeline-stage:has(.timeline-dot.reached) .stage-icon { color: #4a6741; }
+  .timeline-stage:has(.timeline-dot.active) .stage-icon { color: #3d2e1f; }
+
+  .timeline-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--stage-inactive);
+    border: 2.5px solid #c5bfdd;
+    transition: all 0.35s;
+  }
+
+  .timeline-dot.reached {
+    background: var(--mint);
+    border-color: var(--teal);
+  }
+
+  .timeline-dot.active {
+    background: #f6cf74;
+    border-color: #c98749;
+    box-shadow: 0 0 0 4px rgba(246,207,116,0.3);
+    transform: scale(1.2);
+  }
+
+  .timeline-label {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--stage-inactive);
+    transition: color 0.3s;
+    text-align: center;
+  }
+
+  .timeline-label.active { color: var(--color-text-primary); }
+  .timeline-label.reached { color: var(--teal); }
+
+  .timeline-line {
+    flex: 1;
+    height: 2.5px;
+    background: var(--stage-inactive);
+    position: relative;
+    margin: 0 0.3rem;
+    margin-bottom: 2.8rem;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .timeline-line-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: var(--mint);
+    transition: width 0.4s;
+    width: 0%;
+  }
+
+  .slider-section {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding-top: 1rem;
+  }
+
+  .slider-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .slider-wrap {
+    flex: 1;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--stage-inactive);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 4px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--violet);
+    cursor: pointer;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--violet);
+    cursor: pointer;
+  }
+
+  .n-display {
+    font-family: 'DM Sans', sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.8rem;
+    font-weight: 500;
+    color: var(--violet);
+    min-width: 3.5ch;
+    text-align: right;
+  }
+
+  .results-bar {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--color-border);
+    margin-top: 1.2rem;
+  }
+
+  .result-item {
+    text-align: center;
+    flex: 1;
+    min-width: 140px;
+    padding: 0 1rem;
+    position: relative;
+  }
+
+  .result-item + .result-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--color-border);
+  }
+
+  .result-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: 0.25rem;
+  }
+
+  .result-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 500;
+  }
+
+  .result-value.approx { color: var(--teal); }
+  .result-value.exact { color: var(--violet); }
+  .result-value.error { color: #ec7c19; }
+
+  .error-msg {
+    background: #fff4ee;
+    border: 1px solid rgba(236,124,25,0.4);
+    border-radius: 8px;
+    padding: 0.65rem 1rem;
+    font-size: 0.875rem;
+    color: #8a3900;
+    margin-bottom: 1rem;
+    display: none;
+  }
+
+  .error-msg.visible { display: block; }
+
+  .doodle {
+    position: fixed;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .doodle-left {
+    left: 1rem;
+    bottom: 12%;
+    width: 48px;
+  }
+
+  .doodle-right {
+    right: 1.5rem;
+    top: 18%;
+    width: 44px;
+  }
+
+  .grass-strip {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .grass-strip svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  @media (max-width: 900px) {
+    .visual-area {
+      grid-template-columns: 1fr;
+    }
+    .butterfly-panel {
+      flex-direction: row;
+      align-items: center;
+      gap: 1rem;
+    }
+    .butterfly-display {
+      width: 180px;
+      height: 180px;
+      aspect-ratio: auto;
+      flex-shrink: 0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .doodle { display: none; }
+  }
+
+  @media (max-width: 600px) {
+    .controls {
+      grid-template-columns: 1fr;
+    }
+    .btn-compute { width: 100%; }
+    .interactive-panel { padding: 1.5rem; }
+    .results-bar { gap: 1rem; }
+    .result-item + .result-item::before { display: none; }
+    .slider-section { flex-wrap: wrap; }
+    .header { padding: 2rem 1.5rem 1.5rem; }
+    .header h1 { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage-overlay"></div>
+
+<svg class="doodle doodle-left" viewBox="0 0 60 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path d="M30,190 Q28,140 30,90" fill="none" stroke="#4a6741" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M30,150 Q10,130 15,110 Q30,140 30,150Z" fill="rgba(74,103,65,0.18)" stroke="#4a6741" stroke-width="1.2"/>
+  <path d="M30,120 Q52,105 48,85 Q30,110 30,120Z" fill="rgba(74,103,65,0.18)" stroke="#4a6741" stroke-width="1.2"/>
+</svg>
+<svg class="doodle doodle-right" viewBox="0 0 60 160" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <ellipse cx="22" cy="40" rx="10" ry="18" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" transform="rotate(-20 22 40)"/>
+  <ellipse cx="40" cy="100" rx="8" ry="15" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.45)" stroke-width="1.2" transform="rotate(15 40 100)"/>
+</svg>
+
+<div class="grass-strip" aria-hidden="true">
+  <svg viewBox="0 0 1200 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <g id="blades">
+        <path d="M20,80 Q18,55 22,35" stroke-width="2"/>
+        <path d="M28,80 Q32,50 26,28" stroke-width="1.5"/>
+        <path d="M38,80 Q36,60 40,38" stroke-width="2"/>
+        <path d="M50,80 Q52,52 48,30" stroke-width="1.5"/>
+        <path d="M62,80 Q60,58 64,36" stroke-width="2"/>
+        <path d="M75,80 Q78,54 72,32" stroke-width="1.5"/>
+        <path d="M88,80 Q86,62 90,40" stroke-width="2"/>
+        <path d="M100,80 Q102,55 97,33" stroke-width="1.5"/>
+        <path d="M114,80 Q112,60 116,38" stroke-width="2"/>
+        <path d="M128,80 Q130,56 124,34" stroke-width="1.5"/>
+      </g>
+    </defs>
+    <g fill="none" stroke="#3a5e2a" stroke-linecap="round">
+      <use href="#blades"/>
+      <use href="#blades" transform="translate(140,0)"/>
+      <use href="#blades" transform="translate(280,0)"/>
+      <use href="#blades" transform="translate(420,0)"/>
+      <use href="#blades" transform="translate(560,0)"/>
+      <use href="#blades" transform="translate(700,0)"/>
+      <use href="#blades" transform="translate(840,0)"/>
+      <use href="#blades" transform="translate(980,0)"/>
+    </g>
+  </svg>
+</div>
+
+<header class="header">
+  <div class="course-line">MAT133 &middot; TUT0802 &middot; Project 4</div>
+  <h1>From Caterpillar to Butterfly</h1>
+  <div class="one-liner">Riemann sums, approximated in stages.</div>
+</header>
+
+<main class="main">
+
+  <section class="interactive-panel">
+    <div class="panel-label">Explore the Integral</div>
+
+    <div id="errorMsg" class="error-msg" role="alert"></div>
+
+    <div class="controls">
+      <div class="input-group">
+        <label for="fnInput">Function f(x)</label>
+        <input type="text" id="fnInput" class="fn-input" value="x^2" placeholder="e.g. x^2, sin(x), exp(-x)">
+      </div>
+      <div class="bounds-row">
+        <div class="input-group">
+          <label for="aInput">Lower bound a</label>
+          <input type="number" id="aInput" value="0" step="any">
+        </div>
+        <div class="input-group">
+          <label for="bInput">Upper bound b</label>
+          <input type="number" id="bInput" value="2" step="any">
+        </div>
+      </div>
+      <button class="btn-compute" id="btnCompute">Graph</button>
+    </div>
+
+    <div class="visual-area">
+      <div class="graph-container">
+        <canvas id="graphCanvas" width="800" height="500" role="img" aria-label="Interactive Riemann sum graph"></canvas>
+      </div>
+      <div class="butterfly-panel">
+        <div class="butterfly-display">
+          <img src="stage 1.svg" alt="Stage 1: Caterpillar — a small green larva representing the beginning of integration with few rectangles" id="svg1" class="active">
+          <img src="stage 2.svg" alt="Stage 2: Chrysalis forming — the caterpillar begins enclosing itself, representing growing accuracy of the Riemann sum" id="svg2">
+          <img src="stage 3.svg" alt="Stage 3: Chrysalis breaking — the cocoon cracks open as the approximation nears the true integral" id="svg3">
+          <img src="stage 4.svg" alt="Stage 4: Butterfly — fully emerged, representing the exact value of the definite integral" id="svg4">
+        </div>
+        <div class="stage-name" id="stageName">Stage 1: Caterpillar</div>
+        <div class="timeline">
+          <div class="timeline-stage">
+            <svg viewBox="0 0 28 28" class="stage-icon" aria-label="Egg">
+              <ellipse cx="14" cy="15" rx="7" ry="9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <div class="timeline-dot active" data-stage="1" aria-label="Stage 1: Egg, active" aria-current="true"></div>
+            <div class="timeline-label active">Egg</div>
+          </div>
+          <div class="timeline-line"><div class="timeline-line-fill" id="fill1"></div></div>
+          <div class="timeline-stage">
+            <svg viewBox="0 0 28 28" class="stage-icon" aria-label="Caterpillar">
+              <circle cx="6" cy="16" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="13" cy="14" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="20" cy="16" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              <line x1="20" y1="12" x2="22" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="22" y1="12" x2="25" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <div class="timeline-dot" data-stage="2" aria-label="Stage 2: Larva, upcoming"></div>
+            <div class="timeline-label">Larva</div>
+          </div>
+          <div class="timeline-line"><div class="timeline-line-fill" id="fill2"></div></div>
+          <div class="timeline-stage">
+            <svg viewBox="0 0 28 28" class="stage-icon" aria-label="Cocoon">
+              <ellipse cx="14" cy="14" rx="6" ry="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M9,10 Q14,8 19,10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              <path d="M9,14 Q14,12 19,14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              <path d="M9,18 Q14,16 19,18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+            <div class="timeline-dot" data-stage="3" aria-label="Stage 3: Chrysalis, upcoming"></div>
+            <div class="timeline-label">Chrysalis</div>
+          </div>
+          <div class="timeline-line"><div class="timeline-line-fill" id="fill3"></div></div>
+          <div class="timeline-stage">
+            <svg viewBox="0 0 28 28" class="stage-icon" aria-label="Butterfly">
+              <path d="M14,14 Q8,6 4,10 Q2,14 8,16 Q11,17 14,14Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M14,14 Q20,6 24,10 Q26,14 20,16 Q17,17 14,14Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M14,14 Q10,18 8,22 Q11,22 14,18Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M14,14 Q18,18 20,22 Q17,22 14,18Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <line x1="14" y1="8" x2="14" y2="20" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+            <div class="timeline-dot" data-stage="4" aria-label="Stage 4: Butterfly, upcoming"></div>
+            <div class="timeline-label">Butterfly</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slider-section">
+      <label class="slider-label" for="nSlider">Rectangles (n)</label>
+      <div class="slider-wrap">
+        <input type="range" id="nSlider" min="1" max="100" value="1">
+      </div>
+      <span class="n-display" id="nDisplay" aria-live="polite">1</span>
+    </div>
+
+    <div class="results-bar">
+      <div class="result-item">
+        <div class="result-label">Your Approximation</div>
+        <div class="result-value approx" id="riemannValue">&mdash;</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">True Area</div>
+        <div class="result-value exact" id="exactValue">&mdash;</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Distance to Close</div>
+        <div class="result-value error" id="errorValue">&mdash;</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function() {
+  // ── Elements ──
+  const canvas = document.getElementById('graphCanvas');
+  const ctx = canvas.getContext('2d');
+  const fnInput = document.getElementById('fnInput');
+  const aInput = document.getElementById('aInput');
+  const bInput = document.getElementById('bInput');
+  const nSlider = document.getElementById('nSlider');
+  const nDisplay = document.getElementById('nDisplay');
+  const riemannValue = document.getElementById('riemannValue');
+  const exactValue = document.getElementById('exactValue');
+  const errorValue = document.getElementById('errorValue');
+  const stageName = document.getElementById('stageName');
+  const errorMsg = document.getElementById('errorMsg');
+  const btnCompute = document.getElementById('btnCompute');
+
+  const svgs = [
+    document.getElementById('svg1'),
+    document.getElementById('svg2'),
+    document.getElementById('svg3'),
+    document.getElementById('svg4')
+  ];
+
+  const dots = document.querySelectorAll('.timeline-dot');
+  const labels = document.querySelectorAll('.timeline-label');
+  const fills = [
+    document.getElementById('fill1'),
+    document.getElementById('fill2'),
+    document.getElementById('fill3')
+  ];
+
+  const stageNames = [
+    'Stage 1: Caterpillar',
+    'Stage 2: Chrysalis Forming',
+    'Stage 3: Chrysalis Breaking',
+    'Stage 4: Butterfly'
+  ];
+
+  const stageAriaLabels = [
+    ['Stage 1: Egg, active', 'Stage 2: Larva, upcoming', 'Stage 3: Chrysalis, upcoming', 'Stage 4: Butterfly, upcoming'],
+    ['Stage 1: Egg, completed', 'Stage 2: Larva, active', 'Stage 3: Chrysalis, upcoming', 'Stage 4: Butterfly, upcoming'],
+    ['Stage 1: Egg, completed', 'Stage 2: Larva, completed', 'Stage 3: Chrysalis, active', 'Stage 4: Butterfly, upcoming'],
+    ['Stage 1: Egg, completed', 'Stage 2: Larva, completed', 'Stage 3: Chrysalis, completed', 'Stage 4: Butterfly, active']
+  ];
+
+  // ── State ──
+  let compiledFn = null;
+  let currentA = 0;
+  let currentB = 2;
+  let currentN = 1;
+
+  // ── Colors ──
+  const COLORS = {
+    grid:         '#e3e0f5',
+    axis:         '#220d51',
+    rectFillNeg:  'rgba(236,124,25,0.22)',
+    rectStrokeNeg:'rgba(236,124,25,0.5)',
+    text:         '#4e4b8f',
+  };
+
+  // ── Visual atmosphere ──
+  const STAGES = [
+    {
+      bodyBg:       'rgba(30, 20, 10, 0.32)',
+      panelBg:      'rgba(245, 238, 228, 0.78)',
+      accentColor:  '#6b5e4f',
+      rectFill:     'rgba(107, 94, 79, 0.22)',
+      rectStroke:   'rgba(107, 94, 79, 0.45)',
+      filterVal:    'saturate(0.25) opacity(0.55)'
+    },
+    {
+      bodyBg:       'rgba(25, 30, 15, 0.26)',
+      panelBg:      'rgba(245, 242, 232, 0.80)',
+      accentColor:  '#5a7a3a',
+      rectFill:     'rgba(90, 122, 58, 0.22)',
+      rectStroke:   'rgba(90, 122, 58, 0.45)',
+      filterVal:    'saturate(0.6) opacity(0.75)'
+    },
+    {
+      bodyBg:       'rgba(20, 25, 10, 0.18)',
+      panelBg:      'rgba(248, 245, 235, 0.82)',
+      accentColor:  '#8a7340',
+      rectFill:     'rgba(180, 150, 60, 0.22)',
+      rectStroke:   'rgba(180, 150, 60, 0.45)',
+      filterVal:    'saturate(0.85) opacity(0.9)'
+    },
+    {
+      bodyBg:       'rgba(10, 15, 5, 0.08)',
+      panelBg:      'rgba(252, 250, 244, 0.85)',
+      accentColor:  '#c98749',
+      rectFill:     'rgba(201, 168, 76, 0.25)',
+      rectStroke:   'rgba(201, 168, 76, 0.5)',
+      filterVal:    'saturate(1) opacity(1)'
+    }
+  ];
+
+  let currentStage = 0;
+  let prevStage = -1;
+
+  const stageOverlay = document.getElementById('stage-overlay');
+
+  function applyAtmosphere(stage) {
+    const s = STAGES[stage];
+    const root = document.documentElement;
+
+    stageOverlay.style.background = s.bodyBg;
+    root.style.setProperty('--panel-bg', s.panelBg);
+    root.style.setProperty('--teal', s.accentColor);
+    document.querySelector('.graph-container').dataset.stage = stage;
+
+    const activeImg = document.querySelector('.butterfly-display img.active');
+    if (activeImg) {
+      activeImg.style.filter = s.filterVal;
+
+      if (stage > prevStage) {
+        activeImg.style.transition = 'transform 0.4s ease-out';
+        activeImg.style.transform = 'scale(1.08)';
+        setTimeout(() => {
+          activeImg.style.transition = 'transform 0.6s ease-in-out';
+          activeImg.style.transform = 'scale(1)';
+        }, 400);
+      }
+    }
+
+    prevStage = stage;
+  }
+
+  // ── Compile function ──
+  function compileFunction(expr) {
+    try {
+      const node = math.parse(expr);
+      const compiled = node.compile();
+      // Test evaluation
+      compiled.evaluate({ x: 0 });
+      compiled.evaluate({ x: 1 });
+      return compiled;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function evalFn(x) {
+    if (!compiledFn) return 0;
+    try {
+      return compiledFn.evaluate({ x: x });
+    } catch {
+      return 0;
+    }
+  }
+
+  // ── Riemann sum (left endpoint) ──
+  function riemannSum(a, b, n) {
+    const dx = (b - a) / n;
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+      sum += evalFn(a + i * dx) * dx;
+    }
+    return sum;
+  }
+
+  // ── Numerical "exact" integral (Simpson's rule, high n) ──
+  function numericalIntegral(a, b) {
+    const N = 1000;
+    const h = (b - a) / N;
+    let sum = evalFn(a) + evalFn(b);
+    for (let i = 1; i < N; i += 2) sum += 4 * evalFn(a + i * h);
+    for (let i = 2; i < N; i += 2) sum += 2 * evalFn(a + i * h);
+    return sum * h / 3;
+  }
+
+  // ── Stage from n ──
+  function getStage(n) {
+    if (n <= 5) return 0;
+    if (n <= 20) return 1;
+    if (n <= 50) return 2;
+    return 3;
+  }
+
+  // ── Update butterfly & timeline ──
+  function updateButterfly(n) {
+    const stage = getStage(n);
+    currentStage = stage;
+    svgs.forEach((img, i) => img.classList.toggle('active', i === stage));
+    stageName.textContent = stageNames[stage];
+
+    document.querySelector('.butterfly-panel').dataset.stage = stage;
+
+    // Apply visual atmosphere
+    applyAtmosphere(stage);
+
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === stage);
+      dot.classList.toggle('reached', i < stage);
+      dot.setAttribute('aria-label', stageAriaLabels[stage][i]);
+      if (i === stage) {
+        dot.setAttribute('aria-current', 'true');
+      } else {
+        dot.removeAttribute('aria-current');
+      }
+    });
+    labels.forEach((lbl, i) => {
+      lbl.classList.toggle('active', i === stage);
+      lbl.classList.toggle('reached', i < stage);
+    });
+
+    // Fill progress lines
+    const stageBreaks = [5, 20, 50, 100];
+    const stageStarts = [1, 6, 21, 51];
+
+    for (let i = 0; i < 3; i++) {
+      if (stage > i) {
+        fills[i].style.width = '100%';
+      } else if (stage === i) {
+        const start = stageStarts[i];
+        const end = stageBreaks[i];
+        const pct = Math.min(100, ((n - start) / (end - start)) * 100);
+        fills[i].style.width = pct + '%';
+      } else {
+        fills[i].style.width = '0%';
+      }
+    }
+  }
+
+  // ── Draw graph ──
+  function drawGraph() {
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const a = currentA;
+    const b = currentB;
+    const n = currentN;
+
+    if (!compiledFn || a >= b) {
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#f5f3ff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = COLORS.text;
+      ctx.font = '16px "DM Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Enter a valid function and interval to begin.', w / 2, h / 2);
+      return;
+    }
+
+    // Compute y-range by sampling
+    const samples = 400;
+    let yMin = 0, yMax = 0;
+    for (let i = 0; i <= samples; i++) {
+      const x = a + (b - a) * (i / samples);
+      const y = evalFn(x);
+      if (isFinite(y)) {
+        if (y < yMin) yMin = y;
+        if (y > yMax) yMax = y;
+      }
+    }
+    // Also sample rectangle tops
+    const dx = (b - a) / n;
+    for (let i = 0; i < n; i++) {
+      const y = evalFn(a + i * dx);
+      if (isFinite(y)) {
+        if (y < yMin) yMin = y;
+        if (y > yMax) yMax = y;
+      }
+    }
+
+    const yPad = Math.max((yMax - yMin) * 0.15, 0.5);
+    yMin -= yPad;
+    yMax += yPad;
+
+    // Margins
+    const ml = 55, mr = 25, mt = 20, mb = 40;
+    const pw = w - ml - mr;
+    const ph = h - mt - mb;
+
+    function toCanvasX(x) { return ml + (x - a) / (b - a) * pw; }
+    function toCanvasY(y) { return mt + (1 - (y - yMin) / (yMax - yMin)) * ph; }
+
+    ctx.fillStyle = '#f5f3ff';
+    ctx.fillRect(0, 0, w, h);
+
+    // Canvas grain noise
+    const grainIntensity = [28, 16, 6, 0][currentStage];
+    if (grainIntensity > 0) {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      let s = 42;
+      function rand() { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff; }
+      for (let i = 0; i < data.length; i += 4) {
+        const noise = (rand() - 0.5) * grainIntensity;
+        data[i]     = Math.min(255, Math.max(0, data[i]     + noise));
+        data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
+        data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
+      }
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    // Grid lines
+    function niceStep(range, targetTicks) {
+      const rough = range / targetTicks;
+      const pow = Math.pow(10, Math.floor(Math.log10(rough)));
+      const norm = rough / pow;
+      let step;
+      if (norm < 1.5) step = 1;
+      else if (norm < 3.5) step = 2;
+      else if (norm < 7.5) step = 5;
+      else step = 10;
+      return step * pow;
+    }
+
+    const xStep = niceStep(b - a, 8);
+    const yStep = niceStep(yMax - yMin, 6);
+
+    ctx.strokeStyle = COLORS.grid;
+    ctx.lineWidth = 0.5;
+    ctx.font = '11px "DM Sans", sans-serif';
+    ctx.fillStyle = COLORS.text;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+
+    let yStart = Math.ceil(yMin / yStep) * yStep;
+    for (let y = yStart; y <= yMax; y += yStep) {
+      const cy = toCanvasY(y);
+      ctx.beginPath();
+      ctx.moveTo(ml, cy);
+      ctx.lineTo(w - mr, cy);
+      ctx.stroke();
+      ctx.fillText(parseFloat(y.toPrecision(4)), ml - 8, cy);
+    }
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    let xStart = Math.ceil(a / xStep) * xStep;
+    for (let x = xStart; x <= b; x += xStep) {
+      const cx = toCanvasX(x);
+      ctx.beginPath();
+      ctx.moveTo(cx, mt);
+      ctx.lineTo(cx, h - mb);
+      ctx.stroke();
+      ctx.fillText(parseFloat(x.toPrecision(4)), cx, h - mb + 6);
+    }
+
+    // Axes
+    if (yMin <= 0 && yMax >= 0) {
+      const zeroY = toCanvasY(0);
+      ctx.strokeStyle = COLORS.axis;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(ml, zeroY);
+      ctx.lineTo(w - mr, zeroY);
+      ctx.stroke();
+    }
+
+    // Riemann rectangles
+    const stageColors = STAGES[currentStage];
+
+    for (let i = 0; i < n; i++) {
+      const xi = a + i * dx;
+      const yi = evalFn(xi);
+      if (!isFinite(yi)) continue;
+      const rx = toCanvasX(xi);
+      const rw = toCanvasX(xi + dx) - rx;
+      const zeroY = toCanvasY(0);
+      const topY = toCanvasY(yi);
+
+      ctx.fillStyle = yi >= 0 ? stageColors.rectFill : COLORS.rectFillNeg;
+      ctx.strokeStyle = yi >= 0 ? stageColors.rectStroke : COLORS.rectStrokeNeg;
+      ctx.lineWidth = n > 50 ? 0.5 : 1;
+
+      const ry = Math.min(zeroY, topY);
+      const rh = Math.abs(zeroY - topY);
+      ctx.fillRect(rx, ry, rw, rh);
+      ctx.strokeRect(rx, ry, rw, rh);
+    }
+
+    // Watercolour fill under curve
+    const fillGrad = ctx.createLinearGradient(0, mt, 0, mt + ph);
+    const gradColors = [
+      ['rgba(120, 150, 80, 0.18)', 'rgba(100, 130, 60, 0.04)'],
+      ['rgba(80, 130, 60, 0.20)', 'rgba(60, 110, 40, 0.04)'],
+      ['rgba(180, 140, 60, 0.18)', 'rgba(160, 110, 40, 0.04)'],
+      ['rgba(210, 155, 50, 0.22)', 'rgba(190, 130, 30, 0.04)'],
+    ];
+    const [topColor, bottomColor] = gradColors[currentStage] || gradColors[0];
+    fillGrad.addColorStop(0, topColor);
+    fillGrad.addColorStop(1, bottomColor);
+
+    const zeroYFill = toCanvasY(0);
+    ctx.beginPath();
+    let fillStarted = false;
+    for (let i = 0; i <= samples; i++) {
+      const x = a + (b - a) * (i / samples);
+      const y = evalFn(x);
+      if (!isFinite(y)) { fillStarted = false; continue; }
+      const cx = toCanvasX(x);
+      const cy = toCanvasY(y);
+      if (!fillStarted) { ctx.moveTo(cx, zeroYFill); ctx.lineTo(cx, cy); fillStarted = true; }
+      else ctx.lineTo(cx, cy);
+    }
+    ctx.lineTo(toCanvasX(b), zeroYFill);
+    ctx.closePath();
+    ctx.fillStyle = fillGrad;
+    ctx.fill();
+
+    // Function curve
+    const curveStyles = [
+      { color: 'rgba(100, 120, 70, 0.55)',  width: 1.5 },
+      { color: 'rgba(70, 110, 55, 0.70)',   width: 1.8 },
+      { color: 'rgba(160, 110, 40, 0.80)',  width: 2.0 },
+      { color: 'rgba(190, 130, 30, 1.0)',   width: 2.5 },
+    ];
+    const curveStyle = curveStyles[currentStage] || curveStyles[0];
+
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i <= samples; i++) {
+      const x = a + (b - a) * (i / samples);
+      const y = evalFn(x);
+      const cx = toCanvasX(x);
+      const cy = toCanvasY(y);
+      if (!isFinite(y)) { started = false; continue; }
+      if (!started) { ctx.moveTo(cx, cy); started = true; }
+      else ctx.lineTo(cx, cy);
+    }
+
+    if (currentStage === 3) {
+      ctx.strokeStyle = 'rgba(210, 160, 40, 0.12)';
+      ctx.lineWidth = 8;
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = curveStyle.color;
+    ctx.lineWidth = curveStyle.width;
+    ctx.stroke();
+
+    // Border frame
+    ctx.strokeStyle = 'rgba(68,75,143,0.1)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(ml, mt, pw, ph);
+  }
+
+  // ── Update everything ──
+  function update() {
+    currentN = parseInt(nSlider.value);
+    nDisplay.textContent = currentN;
+
+    updateButterfly(currentN);
+    drawGraph();
+
+    if (compiledFn && currentA < currentB) {
+      const rs = riemannSum(currentA, currentB, currentN);
+      const exact = numericalIntegral(currentA, currentB);
+      riemannValue.textContent = rs.toFixed(6);
+      exactValue.textContent = exact.toFixed(6);
+      const err = Math.abs(rs - exact);
+      errorValue.textContent = err < 0.000001 ? '< 0.000001' : err.toFixed(6);
+    } else {
+      riemannValue.textContent = '\u2014';
+      exactValue.textContent = '\u2014';
+      errorValue.textContent = '\u2014';
+    }
+  }
+
+  // ── Compile & validate ──
+  function applyInputs() {
+    errorMsg.classList.remove('visible');
+    errorMsg.textContent = '';
+
+    const expr = fnInput.value.trim();
+    if (!expr) {
+      errorMsg.textContent = 'Please enter a function.';
+      errorMsg.classList.add('visible');
+      compiledFn = null;
+      update();
+      return;
+    }
+
+    const fn = compileFunction(expr);
+    if (!fn) {
+      errorMsg.textContent = 'Could not parse function. Try expressions like: x^2, sin(x), exp(-x), sqrt(x), log(x).';
+      errorMsg.classList.add('visible');
+      compiledFn = null;
+      update();
+      return;
+    }
+
+    const a = parseFloat(aInput.value);
+    const b = parseFloat(bInput.value);
+    if (isNaN(a) || isNaN(b)) {
+      errorMsg.textContent = 'Please enter valid numbers for bounds.';
+      errorMsg.classList.add('visible');
+      return;
+    }
+    if (a >= b) {
+      errorMsg.textContent = 'Lower bound must be less than upper bound.';
+      errorMsg.classList.add('visible');
+      return;
+    }
+
+    compiledFn = fn;
+    currentA = a;
+    currentB = b;
+    update();
+  }
+
+  // ── Events ──
+  nSlider.addEventListener('input', update);
+  btnCompute.addEventListener('click', applyInputs);
+
+  [fnInput, aInput, bInput].forEach(el => {
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyInputs(); });
+  });
+
+  // Handle resize
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => drawGraph(), 100);
+  });
+
+  // ── Initial render ──
+  applyInputs();
+})();
+</script>
+</body>
+</html>
