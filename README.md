@@ -65,6 +65,15 @@ stage_4.svg                         butterfly stage
 white-flowers-and-green-grass-.jpg  background photo
 ```
 
+The project uses a single HTML file:
+- HTML5: page structure and <canvas> element for the graph
+- CSS3: styling, flexbox layout, custom properties, transitions, backdrop-filter, @keyframes animations
+- Vanilla JavaScript: DOM manipulation, event listeners, canvas drawing, all calculation logic
+- math.js (CDN): open-source library for parsing and evaluating user-inputted math expressions
+- Google Fonts (CDN): Cormorant Garamond and DM Sans typefaces
+- SVG files: four butterfly stage illustrations
+- Python http.server: local preview server for development
+
 ---
 
 ## Open-Source Tools Used
@@ -85,12 +94,3 @@ white-flowers-and-green-grass-.jpg  background photo
 - Step 3: Interactivity. An HTML range slider (<input type="range">) was added for the rectangle count, with a JavaScript event listener that redraws the graph whenever the slider moves.
 - Step 4: Butterfly stages. An if/else chain mapped the slider value to one of four metamorphosis stages. Each stage swapped the butterfly image src to a different SVG. The SVG illustrations were sourced from teammate's drawing and convertede to an SVG
 - Step 5+: Visual polish. Each visual effect was added independently: a background image via CSS, frosted glass panels using backdrop-filter: blur(), Google Fonts via a <link> tag, canvas grain noise through getImageData/putImageData, a gradient fill under the curve with createLinearGradient(), smooth color transitions with CSS transition, and a butterfly pulse animation using CSS @keyframes. Each effect was found by searching terms like "glassmorphism CSS" or "canvas noise texture" on MDN and tutorial sites.
-
-The project uses a single HTML file:
-- HTML5: page structure and <canvas> element for the graph
-- CSS3: styling, flexbox layout, custom properties, transitions, backdrop-filter, @keyframes animations
-- Vanilla JavaScript: DOM manipulation, event listeners, canvas drawing, all calculation logic
-- math.js (CDN): open-source library for parsing and evaluating user-inputted math expressions
-- Google Fonts (CDN): Cormorant Garamond and DM Sans typefaces
-- SVG files: four butterfly stage illustrations
-- Python http.server: local preview server for development
